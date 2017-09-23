@@ -1,17 +1,16 @@
 """Pyin pitch tracker
 """
-# import glob
-import jams
-import librosa
-import numpy as np
-# import os
 import vamp
-from vamp import vampyhost
+import numpy as np
+
+import jams
+import pretty_midi
+import librosa
 import matplotlib.pyplot as plt
 
 
-class Pyin(object):
-    """probabalistic yin pitch tracker.
+class Annotator(object):
+    """annotator using probabalistic yin pitch tracker.
 
     Parameters
     ----------
@@ -42,15 +41,18 @@ class Pyin(object):
         """init method
         """
 
-        self.parameters = {
+        self.trans_param = {
             'threshdistr': threshdistr,
             'outputunvoiced': outputunvoiced,
             'precisetime': precisetime,
             'lowampsuppression': lowampsuppression
         }
+        self.ann_param = {}
+        self.trans_output = None
 
-    def run(self, y, fs, plot=0):
-        """Run pyin on an audio signal y.
+    def mono_trans(self, y, fs):
+        """Run pyin on an audio signal y. Saves a internal
+        representation of the output by updating the output of the self object.
 
         Parameters
         ----------
@@ -58,19 +60,68 @@ class Pyin(object):
             audio signal
         fs : float
             audio sample rate
-
-        Returns
-        -------
-        jam : JAMS
-            JAMS object with pyin output
         """
         output = vamp.collect(
             y, fs, 'pyin:pyin', output='notes',
-            parameters=self.parameters
+            parameters=self.trans_param
         )
 
+        return output
+
+    def run_trans(self, fpath):
+        """
+
+
+        """
+        #import 6 channel wave
+        sig, fs = None # todo
+        num_ch = sig.shape()[0]
+        # make dummy output
+        output = np.zeros((num_ch,0)) # TODO
+        for ch in range(num_ch):
+            y = sig[ch]
+            output[ch] = self.mono_trans(y, fs)
+        output = None # todo
+        self.trans_output = output
+
+    def output_to_jams(self):
+        """Interprets stored output into jams format
+
+        Returns
+        -------
+        jam : JAMS object
+            a jams file containing the annotation
+        """
+        # changes self.output
+        pass
+
+    def output_to_midi(self):
+        """Interprets stored output into MIDI format
+
+        Returns
+        -------
+        midi : PrettyMidi object
+            a pretty-midi object containing the annotation
+        """
+        pass
+
+    def output_to_plot(self):
+        """Plot Notes, one color per string
+        """
+        pass
+
+    def sonify(self):
+        pass
+
+    def tablature(self):
+        pass
+
+    def rh_pattern(self):
+        pass
+
+    def notes_to_jams(output, dur):
         jam = jams.JAMS()
-        jam.file_metadata.duration = len(y) / float(fs)
+        jam.file_metadata.duration = dur
         ann = jams.Annotation(
             namespace='pitch_midi', time=0,
             duration=jam.file_metadata.duration)
@@ -85,12 +136,18 @@ class Pyin(object):
                        duration=dur,
                        confidence=None)
             if plot:
-                plt.plot([start_time, start_time+dur], [midi_note, midi_note])
+                plt.plot([start_time, start_time + dur],
+                         [midi_note, midi_note],
+                         '#FFA500')
 
         jam.annotations.append(ann)
 
         if plot:
             plt.show()
 
-        return jam
-
+    def notes_to_midi(output):
+        string = pretty_midi.PrettyMIDI()
+        for i in range(len(output['list'])):
+            current_note = output['list'][i]
+            start_time = current_note['timestamp']
+            midi_note = librosa.hz_to_midi(current_note['values'][0])
