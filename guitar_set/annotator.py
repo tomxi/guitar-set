@@ -1,4 +1,4 @@
-"""Pyin pitch tracker
+"""Hex.annotator
 """
 import vamp
 import numpy as np
@@ -41,7 +41,7 @@ class Annotator(object):
         """init method
         """
 
-        self.trans_param = {
+        self.pyin_param = {
             'threshdistr': threshdistr,
             'outputunvoiced': outputunvoiced,
             'precisetime': precisetime,
@@ -50,7 +50,7 @@ class Annotator(object):
         self.ann_param = {}
         self.trans_output = None
 
-    def mono_trans(self, y, fs):
+    def mono_pyin(self, y, fs):
         """Run pyin on an audio signal y. Saves a internal
         representation of the output by updating the output of the self object.
 
@@ -63,12 +63,12 @@ class Annotator(object):
         """
         output = vamp.collect(
             y, fs, 'pyin:pyin', output='notes',
-            parameters=self.trans_param
+            parameters=self.pyin_param
         )
 
-        return output
+        return output['list']
 
-    def run_trans(self, fpath):
+    def transcribe(self, y=None, fs=None, fpath=None):
         """
 
 
@@ -119,7 +119,7 @@ class Annotator(object):
     def rh_pattern(self):
         pass
 
-    def notes_to_jams(output, dur):
+    def notes_to_jams(self, output, dur, plot):
         jam = jams.JAMS()
         jam.file_metadata.duration = dur
         ann = jams.Annotation(
@@ -145,7 +145,7 @@ class Annotator(object):
         if plot:
             plt.show()
 
-    def notes_to_midi(output):
+    def notes_to_midi(self, output):
         string = pretty_midi.PrettyMIDI()
         for i in range(len(output['list'])):
             current_note = output['list'][i]
