@@ -8,6 +8,9 @@ import pretty_midi
 import librosa
 import matplotlib.pyplot as plt
 
+from os import listdir
+from os.path import isfile, join
+
 
 class Annotator(object):
     """annotator using probabalistic yin pitch tracker.
@@ -50,9 +53,8 @@ class Annotator(object):
         self.ann_param = {}
         self.trans_output = None
 
-    def mono_pyin(self, y, fs):
-        """Run pyin on an audio signal y. Saves a internal
-        representation of the output by updating the output of the self object.
+    def _mono_pyin(self, y, fs):
+        """Run pyin on an audio signal y.
 
         Parameters
         ----------
@@ -68,20 +70,33 @@ class Annotator(object):
 
         return output['list']
 
-    def transcribe(self, y=None, fs=None, fpath=None):
-        """
+    def transcribe(self, y=None, fs=None, dirpath=None):
+        """Run mono_pyin on a multi-ch signal `y` with sample rate `fs`. Or run
+        mono_pyin on all wavs in a folder `dirpath`.
 
 
         """
-        #import 6 channel wave
-        sig, fs = None # todo
-        num_ch = sig.shape()[0]
+        # first try loading from dirpath
+        if dirpath is not None:
+            files = [join(dirpath, f)
+                     for f in listdir(dirpath) if isfile(join(dirpath, f))]
+            y = []
+            for f in files:
+                y_mono, fs = librosa.load(f, sr=None)
+                y.append(y_mono)
+            y = np.array(y)
+
+
+        num_ch = y.shape[0] if y.ndim != 1 else 1
         # make dummy output
-        output = np.zeros((num_ch,0)) # TODO
-        for ch in range(num_ch):
-            y = sig[ch]
-            output[ch] = self.mono_trans(y, fs)
-        output = None # todo
+        output = []
+        if num_ch != 1:
+            for ch in range(num_ch):
+                y_mono = y[ch]
+                out_mono = self._mono_pyin(y_mono, fs)
+                output.append(out_mono)
+        else: # mono sig
+            output = self._mono_pyin(y_mono, fs)
         self.trans_output = output
 
     def output_to_jams(self):
