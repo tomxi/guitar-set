@@ -8,57 +8,71 @@ import pretty_midi
 import librosa
 import matplotlib.pyplot as plt
 
+import os
 from os import listdir
 from os.path import isfile, join, basename
 
 
-def mono_pyin(y, fs, param=None):
-    """Run pyin on an audio signal y.
+# def mono_pyin(y, fs, param=None):
+#     """Run pyin on an audio signal y.
+#
+#     Parameters
+#     ----------
+#     y : np.array
+#         audio signal
+#     fs : float
+#         audio sample rate
+#     param : dict default=None
+#         threshdistr : int, default=2
+#             Yin threshold distribution identifier.
+#                 - 0 : uniform
+#                 - 1 : Beta (mean 0.10)
+#                 - 2 : Beta (mean 0.15)
+#                 - 3 : Beta (mean 0.20)
+#                 - 4 : Beta (mean 0.30)
+#                 - 5 : Single Value (0.10)
+#                 - 6 : Single Value (0.15)
+#                 - 7 : Single Value (0.20)
+#         outputunvoiced : int, default=0
+#             Output estimates classified as unvoiced?
+#                 - 0 : No
+#                 - 1 : Yes
+#                 - 2 : Yes, as negative frequencies
+#         precisetime : int, default=0
+#             If 1, use non-standard precise YIN timing (slow)
+#         lowampsuppression : float, default=0.005
+#             Threshold between 0 and 1 to supress low amplitude pitch estimates.
+#
+#
+#     """
+#     if param is None:
+#         param = {
+#             'threshdistr': 2,
+#             'outputunvoiced': 0,
+#             'precisetime': 0,
+#             'lowampsuppression': 0.005,
+#             'onsetsensitivity': 0.7
+#         }
+#
+#     output = vamp.collect(y, fs, 'pyin:pyin', output='notes', parameters=param)
+#     return output['list'], len(y) / float(fs)
 
-    Parameters
-    ----------
-    y : np.array
-        audio signal
-    fs : float
-        audio sample rate
-    param : dict default=None
-        threshdistr : int, default=2
-            Yin threshold distribution identifier.
-                - 0 : uniform
-                - 1 : Beta (mean 0.10)
-                - 2 : Beta (mean 0.15)
-                - 3 : Beta (mean 0.20)
-                - 4 : Beta (mean 0.30)
-                - 5 : Single Value (0.10)
-                - 6 : Single Value (0.15)
-                - 7 : Single Value (0.20)
-        outputunvoiced : int, default=0
-            Output estimates classified as unvoiced?
-                - 0 : No
-                - 1 : Yes
-                - 2 : Yes, as negative frequencies
-        precisetime : int, default=0
-            If 1, use non-standard precise YIN timing (slow)
-        lowampsuppression : float, default=0.005
-            Threshold between 0 and 1 to supress low amplitude pitch estimates.
 
+def mono_anal(stem_path, open_string_midi):
+    done = False
+    cmd = 'python mono_anal_script.py {} {}'.format(stem_path,
+                                                    open_string_midi)
+    while not done:
+        err = os.system(cmd)
+        if err:
+            print('vamp.collect errored, trying again...')
+        else: # successful, no seg fault
+            done = True
 
-    """
-    if param is None:
-        param = {
-            'threshdistr': 2,
-            'outputunvoiced': 0,
-            'precisetime': 0,
-            'lowampsuppression': 0.005,
-            'onsetsensitivity': 0.7
-        }
+    return 0
 
-    output = vamp.collect(y, fs, 'pyin:pyin', output='notes', parameters=param)
-    return output['list'], len(y) / float(fs)
-
-
-def wav_f_condition(f, dirpath):
-    return isfile(join(dirpath, f)) & (f.split('.')[1] == 'wav')
+def ext_f_condition(f, dirpath, ext):
+    return isfile(join(dirpath, f)) & (f.split('.')[1] == ext)
 
 
 def transcribe(dirpath=None):
@@ -67,19 +81,27 @@ def transcribe(dirpath=None):
     """
     # first try loading from dirpath
     files = [join(dirpath, f) for f in listdir(dirpath) if
-             wav_f_condition(f, dirpath)]
+             ext_f_condition(f, dirpath, 'wav')]
 
-    num_ch = len(files)
     # make dummy output
     output = []
-    for ch in range(num_ch):
-        y_mono, fs = librosa.load(files[ch], sr=44100)
-        print('about to call pyin')
-        out_mono, dur = mono_pyin(y_mono, fs)
-        print('pyin done')
-        output.append(out_mono)
-        del y_mono
-    return output, dur
+
+    str_midi_dict = {
+        '0': 44,
+        '1': 49,
+        '2': 54,
+        '3': 59,
+        '4': 63,
+        '5': 68
+    }
+    for f in files:
+        string_id = f.split('.')[0][-1]
+        str_midi = str_midi_dict[string_id]
+        mono_anal(f, str_midi)
+
+    jams_files = [join(dirpath, f) for f in listdir(dirpath) if
+             ext_f_condition(f, dirpath, 'jams')]
+    return 0
 
 
 def output_to_jams(output, dur):

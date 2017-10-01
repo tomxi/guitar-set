@@ -90,7 +90,7 @@ def main(args):
     jam_path = args.stem_path.split('.')[0]+'.jams'
     jam.save(jam_path)
     print('jams file generated')
-    pass
+    return 0
 
 
 if __name__ == '__main__':

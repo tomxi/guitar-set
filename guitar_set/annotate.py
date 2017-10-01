@@ -5,12 +5,7 @@ import os
 
 def main(args):
     print(args.dirpath)
-    output, dur = ghex.transcribe(dirpath=args.dirpath)
-    midi_out = ghex.output_to_midi(output)
-    output_path = os.path.join(args.out_dirpath, args.dirpath + '.wav')
-    print('about to sonify')
-    ghex.sonify(midi_out, output_path)
-    print('sonify done, saved as {}'.format(output_path))
+    ghex.transcribe(dirpath=args.dirpath)
     return 0
 
 
