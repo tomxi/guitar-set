@@ -6,29 +6,31 @@ import csv
 
 def process_session(input_dir, output_dir, pl_id):
     stem_names = [
-        'U87_ref_mic_comp_1.wav',
-        'U87_ref_mic_solo_1.wav',
-        'E_comp_1.wav',
-        'A_comp_1.wav',
-        'D_comp_1.wav',
-        'G_comp_1.wav',
-        'B_comp_1.wav',
-        'eh_comp_1.wav',
-        'E_solo_1.wav',
-        'A_solo_1.wav',
-        'D_solo_1.wav',
-        'G_solo_1.wav',
-        'B_solo_1.wav',
-        'eh_solo_1.wav',
-        'Click_1.wav'
+        'comp_ref_1.wav',
+        'solo_ref_1.wav',
+        '0_c_1.wav',
+        '1_c_1.wav',
+        '2_c_1.wav',
+        '3_c_1.wav',
+        '4_c_1.wav',
+        '5_c_1.wav',
+        '0_s_1.wav',
+        '1_s_1.wav',
+        '2_s_1.wav',
+        '3_s_1.wav',
+        '4_s_1.wav',
+        '5_s_1.wav',
+        'comp_mix_1.wav',
+        'solo_mix_1.wav'
     ]
 
     output_mapping = {
         'mic_comp': {1: [1]},
         'mic_solo': {1: [2]},
-        # 'hexComp': {k: [v] for (k, v) in zip(range(1,7), range(3,9))},
-        # 'hexSolo': {k: [v] for (k, v) in zip(range(1,7), range(9,15))},
-        'click': {1: [15]}
+        'hex_comp': {k: [v] for (k, v) in zip(range(1,7), range(3,9))},
+        'hex_solo': {k: [v] for (k, v) in zip(range(1,7), range(9,15))},
+        'mix_comp': {1: [15, 16]},
+        'mix_solo': {1: [17, 18]}
     }
 
     output_mapping_with_label = {

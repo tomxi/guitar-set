@@ -1,4 +1,5 @@
 import os
+import annotator as ann
 
 base_dir = '/Users/tom/Documents/REPO/mirapie/results'
 
@@ -13,12 +14,9 @@ while len(todo_dir_list) is not 0:
     print('todo length:{}'.format(len(todo_dir_list)))
     current_task = todo_dir_list[-1] # because using List.pop() later.
     dirpath = os.path.join(base_dir, current_task)
-    out_dirpath = base_dir
-    command = 'python annotate.py {} {}'.format(dirpath, out_dirpath)
-    err = os.system(command)
-    if err:
-        print('errored, continuing')
-        continue
-    else: # successful
-        todo_dir_list.pop()
+    jams_files = ann.transcribe(dirpath)
+    # combine jams files to make midi
+    midi_file = ann.jams_to_midi(jams_files)
+    ann.sonify(midi_file, dirpath+'.wav')
+    todo_dir_list.pop()
 

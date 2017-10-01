@@ -21,13 +21,15 @@ def output_to_jams(notes, dur, open_string_midi):
         midi_note = librosa.hz_to_midi(note['values'][0])[0]
         dur = float(note['duration'])
         if midi_note >= open_string_midi-0.5:
-            print([midi_note, open_string_midi-0.5])
             ann.append(time=start_time,
                        value=midi_note,
                        duration=dur,
                        confidence=None)
         else:
-            print('pyin: lower than open string, discarding')
+            print(
+                'pyin: {} lower than open string {}, discarding'.format(
+                    midi_note, open_string_midi)
+            )
     jam.annotations.append(ann)
     return jam
 
@@ -70,7 +72,7 @@ def mono_anal(y, fs, param=None):
             'outputunvoiced': 0,
             'precisetime': 0,
             'lowampsuppression': 0.01,
-            'onsetsensitivity': 0.3
+            'onsetsensitivity': 0.5
         }
 
     output_notes = vamp.collect(y, fs, 'pyin:pyin', output='notes',
@@ -81,11 +83,9 @@ def mono_anal(y, fs, param=None):
 
 def main(args):
     """build a jams file next to the input file or to a specific directory"""
-    print('loading audio')
+    print('loading {}'.format(args.stem_path))
     y, fs = librosa.load(args.stem_path, sr=44100)
-    print('about to call vamp.collect')
     notes, dur = mono_anal(y, fs)
-    print('finished calling vamp.collect')
     jam = output_to_jams(notes, dur, args.open_string_midi)
     jam_path = args.stem_path.split('.')[0]+'.jams'
     jam.save(jam_path)
