@@ -49,7 +49,8 @@ def mono_pyin(y, fs, param=None):
             'threshdistr': 2,
             'outputunvoiced': 0,
             'precisetime': 0,
-            'lowampsuppression': 0.01
+            'lowampsuppression': 0.005,
+            'onsetsensitivity': 0.7
         }
 
     output = vamp.collect(y, fs, 'pyin:pyin', output='notes', parameters=param)
@@ -59,38 +60,25 @@ def mono_pyin(y, fs, param=None):
 def wav_f_condition(f, dirpath):
     return isfile(join(dirpath, f)) & (f.split('.')[1] == 'wav')
 
-def transcribe( y=None, fs=None, dirpath=None):
+
+def transcribe(dirpath=None):
     """Run mono_pyin on a multi-ch signal `y` with sample rate `fs`. Or run
     mono_pyin on all wavs in a folder `dirpath`.
-
-
     """
     # first try loading from dirpath
-    if dirpath is not None:
-        files = [join(dirpath, f) for f in listdir(dirpath) if
-                 wav_f_condition(f, dirpath)]
-        y = []
-        for f in files:
-            print(f)
-            y_mono, fs = librosa.load(f, sr=44100)
-            print(fs)
-            y.append(y_mono)
-        y = np.array(y)
-    elif y is None:
-        raise ValueError("either y or dirpath has to not be None!")
-    else:
-        pass # use y as input.
+    files = [join(dirpath, f) for f in listdir(dirpath) if
+             wav_f_condition(f, dirpath)]
 
-    num_ch = y.shape[0] if y.ndim != 1 else 1
+    num_ch = len(files)
     # make dummy output
     output = []
-    if num_ch != 1:
-        for ch in range(num_ch):
-            y_mono = y[ch]
-            out_mono, dur = mono_pyin(y_mono, fs)
-            output.append(out_mono)
-    else: # mono sig
-        output, dur = mono_pyin(y, fs)
+    for ch in range(num_ch):
+        y_mono, fs = librosa.load(files[ch], sr=44100)
+        print('about to call pyin')
+        out_mono, dur = mono_pyin(y_mono, fs)
+        print('pyin done')
+        output.append(out_mono)
+        del y_mono
     return output, dur
 
 
@@ -158,7 +146,7 @@ def output_to_midi(output):
 
 
 def output_to_plot(output):
-    style_dict = {0 : 'r', 1 : 'y', 2 : 'b', 3 : '#FF7F50', 4 : 'g', 5 : 'p'}
+    style_dict = {0 : 'r', 1 : 'y', 2 : 'b', 3 : '#FF7F50', 4 : 'g', 5 : '#800080'}
 
     s = 0
     for string_tran in output:
@@ -171,11 +159,15 @@ def output_to_plot(output):
                      style_dict[s])
         s += 1
 
+    # TODO:Make legend and make the plot pretty. Make time axis
+
+    plt.show()
 
 def sonify(midi, fpath='resources/sonify_out/test.wav'):
     """midi to files sonification. Write sonified wave files to fpath
     """
     signal_out = midi.fluidsynth()
+    # TODO:write small wave files
     librosa.output.write_wav(fpath, signal_out, 44100)
 
 
