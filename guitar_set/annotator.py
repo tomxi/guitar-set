@@ -113,6 +113,7 @@ def jams_to_midi(jams_files):
         ann = jam.search(namespace='pitch_midi')[0]
         for note in ann:
             pitch = int(round(note.value))
+            bend_amount = int(round((note.value - pitch) * 4096))
             st = note.time
             dur = note.duration
             n = pretty_midi.Note(
@@ -120,7 +121,12 @@ def jams_to_midi(jams_files):
                 pitch=pitch, start=st,
                 end=st+dur
             )
+            pb = pretty_midi.PitchBend(pitch=bend_amount,
+                                       time=st
+                                       )
+            # 0.05 is to offset the pb. shift if forward just a tinny bit.
             ch.notes.append(n)
+            ch.pitch_bends.append(pb)
         if len(ch.notes) != 0:
             midi.instruments.append(ch)
     return midi

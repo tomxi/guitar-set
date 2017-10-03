@@ -1,7 +1,7 @@
 import os
 import annotator as ann
 
-base_dir = '/Users/tom/Documents/REPO/mirapie/results'
+base_dir = '/Users/tom/Music/DataSet/guitar_set/vl_post_mira'
 
 
 def get_immediate_subdirectories(a_dir):
@@ -17,6 +17,6 @@ while len(todo_dir_list) is not 0:
     jams_files = ann.transcribe(dirpath)
     # combine jams files to make midi
     midi_file = ann.jams_to_midi(jams_files)
-    ann.sonify(midi_file, dirpath+'.wav')
+    ann.sonify(midi_file, dirpath+'_trans.wav')
     todo_dir_list.pop()
 
