@@ -6,7 +6,8 @@ import numpy as np
 import jams
 import pretty_midi
 import librosa
-import matplotlib.pyplot as plt
+import csv
+import sox
 
 import os
 from os import listdir
@@ -60,7 +61,7 @@ from os.path import isfile, join, basename
 
 def mono_anal(stem_path, open_string_midi):
     done = False
-    cmd = 'python mono_anal_script.py {} {}'.format(stem_path,
+    cmd = 'python util/mono_anal_script.py {} {}'.format(stem_path,
                                                     open_string_midi)
     while not done:
         err = os.system(cmd)
@@ -73,8 +74,13 @@ def mono_anal(stem_path, open_string_midi):
 
 
 def ext_f_condition(f, dirpath, ext):
+
     return isfile(join(dirpath, f)) & (f.split('.')[1] == ext)
 
+
+def get_immediate_subdirectories(a_dir):
+    return [name for name in os.listdir(a_dir)
+            if os.path.isdir(os.path.join(a_dir, name))]
 
 def transcribe(dirpath=None):
     """Run mono_pyin on a multi-ch signal `y` with sample rate `fs`. Or run
@@ -100,12 +106,12 @@ def transcribe(dirpath=None):
         str_midi = str_midi_dict[string_id]
         mono_anal(f, str_midi)
 
-    jams_files = [join(dirpath, f) for f in listdir(dirpath) if
-             ext_f_condition(f, dirpath, 'jams')]
-    return jams_files
+    return 0
 
 
-def jams_to_midi(jams_files):
+def jamses_to_midi(jams_files_dir):
+    jams_files = [join(jams_files_dir, f) for f in listdir(jams_files_dir) if
+                  ext_f_condition(f, jams_files_dir, 'jams')]
     midi = pretty_midi.PrettyMIDI()
     for j in jams_files:
         jam = jams.load(j)
@@ -121,10 +127,7 @@ def jams_to_midi(jams_files):
                 pitch=pitch, start=st,
                 end=st+dur
             )
-            pb = pretty_midi.PitchBend(pitch=bend_amount,
-                                       time=st
-                                       )
-            # 0.05 is to offset the pb. shift if forward just a tinny bit.
+            pb = pretty_midi.PitchBend(pitch=bend_amount, time=st)
             ch.notes.append(n)
             ch.pitch_bends.append(pb)
         if len(ch.notes) != 0:
@@ -132,69 +135,75 @@ def jams_to_midi(jams_files):
     return midi
 
 
-# def output_to_jams(output, dur):
-#     """Interprets stored output into jams format
-#
-#         Returns
-#         -------
-#         jam : JAMS object
-#             a jams file containing the annotation
-#         """
-#     output = output[0]
-#
-#     jam = jams.JAMS()
-#     jam.file_metadata.duration = dur
-#     for s in range(len(output)):
-#         ann = jams.Annotation(
-#             namespace='pitch_midi', time=0,
-#             duration=jam.file_metadata.duration)
-#         ann.annotation_metadata.data_source = str(s)
-#         for i in range(len(output[s])):
-#             current_note = output[s][i+1]
-#             start_time = current_note['timestamp']
-#             midi_note = librosa.hz_to_midi(current_note['values'][0])
-#             dur = current_note['duration']
-#             ann.append(time=start_time,
-#                        value=midi_note,
-#                        duration=dur,
-#                        confidence=None)
-#
-#         jam.annotations.append(ann)
-#
-#     return jam
-#
-#
-# def output_to_midi(output):
-#     """Interprets stored output into MIDI format
-#
-#     Parameters
-#     ----------
-#     output : list
-#
-#     Returns
-#     -------
-#     midi : PrettyMidi object
-#         a pretty-midi object containing the annotation
-#     """
-#
-#     # output = output[0]
-#     midi = pretty_midi.PrettyMIDI()
-#     for string_tran in output:
-#         ch = pretty_midi.Instrument(program=25)
-#         for note in string_tran:
-#             pitch = int(round(librosa.hz_to_midi(note['values'][0])[0]))
-#             end_time = float(note['timestamp'] + note['duration'])
-#             n = pretty_midi.Note(
-#                 velocity=100 + np.random.choice(range(-5, 5)),
-#                 pitch=pitch, start=float(note['timestamp']),
-#                 end=end_time
-#             )
-#             ch.notes.append(n)
-#         if len(ch.notes) != 0:
-#             midi.instruments.append(ch)
-#     return midi
-#
-#
+def jams_to_midi(jam):
+    midi = pretty_midi.PrettyMIDI()
+    annos = jam.search(namespace='pitch_midi')
+    for anno in annos:
+        midi_ch = pretty_midi.Instrument(program=25)
+        for note in anno:
+            pitch = int(round(note.value))
+            bend_amount = int(round((note.value - pitch) * 4096))
+            st = note.time
+            dur = note.duration
+            n = pretty_midi.Note(
+                velocity=100 + np.random.choice(range(-5, 5)),
+                pitch=pitch, start=st,
+                end=st + dur
+            )
+            pb = pretty_midi.PitchBend(pitch=bend_amount, time=st)
+            midi_ch.notes.append(n)
+            midi_ch.pitch_bends.append(pb)
+        if len(midi_ch.notes) != 0:
+            midi.instruments.append(midi_ch)
+    return midi
+
+
+def sonify(midi, fpath='resources/sonify_out/test.wav'):
+    """midi to files sonification. Write sonified wave files to fpath
+    """
+    signal_out = midi.fluidsynth()
+    # TODO:write small wave files
+    librosa.output.write_wav(fpath, signal_out, 44100)
+    return 0
+
+
+def jamses_to_jams(jams_files_dir):
+    jams_files = [join(jams_files_dir, f) for f in listdir(jams_files_dir) if
+                  ext_f_condition(f, jams_files_dir, 'jams')]
+    jam = jams.JAMS()
+    for j in jams_files:
+        mono_jams = jams.load(j)
+        jam.annotations.append(mono_jams.search(namespace='pitch_midi')[0])
+        jam.file_metadata.duration = mono_jams.file_metadata.duration
+    return jam
+
+
+def csvs_to_jams(csv_files_dir):
+    jam = jams.JAMS()
+    wav_files = [join(csv_files_dir, f) for f in listdir(csv_files_dir) if
+                 ext_f_condition(f, csv_files_dir, 'wav')]
+    cvs_files = [join(csv_files_dir, f) for f in listdir(csv_files_dir) if
+                 ext_f_condition(f, csv_files_dir, 'csv')]
+    jam.file_metadata.duration = sox.file_info.duration(wav_files[0])
+    for c in cvs_files:
+        with open(c, 'r') as stream:
+            ann_cvs = csv.reader(stream)
+            ann_jam = jams.Annotation(namespace='pitch_midi', time=0,
+                                      duration=jam.file_metadata.duration)
+            for row in ann_cvs:
+                try:
+                    st = float(row[0])
+                    midi_note = librosa.hz_to_midi(float(row[1]))[0]
+                    dur = float(row[2])
+                    ann_jam.append(time=st, value=midi_note, duration=dur,
+                                   confidence=None)
+                except:
+                    print('empty row')
+                    pass
+        jam.annotations.append(ann_jam)
+
+    return jam
+
 # def output_to_plot(output):
 #     style_dict = {0 : 'r', 1 : 'y', 2 : 'b', 3 : '#FF7F50', 4 : 'g', 5 : '#800080'}
 #
@@ -209,15 +218,9 @@ def jams_to_midi(jams_files):
 #                      style_dict[s])
 #         s += 1
 #
-#     # TODO:Make legend and make the plot pretty. Make time axis
+#
 #
 #     plt.show()
 #
-def sonify(midi, fpath='resources/sonify_out/test.wav'):
-    """midi to files sonification. Write sonified wave files to fpath
-    """
-    signal_out = midi.fluidsynth()
-    # TODO:write small wave files
-    librosa.output.write_wav(fpath, signal_out, 44100)
 #
 #
