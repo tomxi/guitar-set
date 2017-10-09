@@ -1,4 +1,4 @@
-"""Hex.annotator
+"""annotator
 """
 
 import numpy as np
@@ -8,7 +8,9 @@ import pretty_midi
 import librosa
 import csv
 import sox
-
+import matplotlib.pyplot as plt
+import tempfile
+import shutil
 import os
 from os import listdir
 from os.path import isfile, join, basename
@@ -106,10 +108,32 @@ def transcribe(dirpath=None):
         str_midi = str_midi_dict[string_id]
         mono_anal(f, str_midi)
 
-    return 0
+
+def transcribe_hex(hex_path):
+    temp_path = tempfile.mkdtemp()
+
+    output_mapping = {'00': {1: [1]},
+                      '01': {1: [2]},
+                      '02': {1: [3]},
+                      '03': {1: [4]},
+                      '04': {1: [5]},
+                      '05': {1: [6]}
+                      }
+
+    for mix_type, remix_dict in output_mapping.items():
+        tfm = sox.Transformer()
+        tfm.remix(remix_dictionary=remix_dict)
+        output_path = os.path.join(temp_path, '{}.wav'.format(mix_type))
+        tfm.build(hex_path, output_path)
+
+    transcribe(temp_path)
+
+    jam = jamses_to_jams(temp_path)
+    shutil.rmtree(temp_path)
+    return jam
 
 
-def jamses_to_midi(jams_files_dir):
+def jamses_to_midi(jams_files_dir, q=1):
     jams_files = [join(jams_files_dir, f) for f in listdir(jams_files_dir) if
                   ext_f_condition(f, jams_files_dir, 'jams')]
     midi = pretty_midi.PrettyMIDI()
@@ -127,7 +151,7 @@ def jamses_to_midi(jams_files_dir):
                 pitch=pitch, start=st,
                 end=st+dur
             )
-            pb = pretty_midi.PitchBend(pitch=bend_amount, time=st)
+            pb = pretty_midi.PitchBend(pitch=bend_amount*q, time=st)
             ch.notes.append(n)
             ch.pitch_bends.append(pb)
         if len(ch.notes) != 0:
@@ -135,7 +159,7 @@ def jamses_to_midi(jams_files_dir):
     return midi
 
 
-def jams_to_midi(jam):
+def jams_to_midi(jam, q=1):
     midi = pretty_midi.PrettyMIDI()
     annos = jam.search(namespace='pitch_midi')
     for anno in annos:
@@ -150,7 +174,7 @@ def jams_to_midi(jam):
                 pitch=pitch, start=st,
                 end=st + dur
             )
-            pb = pretty_midi.PitchBend(pitch=bend_amount, time=st)
+            pb = pretty_midi.PitchBend(pitch=bend_amount*q, time=st)
             midi_ch.notes.append(n)
             midi_ch.pitch_bends.append(pb)
         if len(midi_ch.notes) != 0:
@@ -204,23 +228,22 @@ def csvs_to_jams(csv_files_dir):
 
     return jam
 
-# def output_to_plot(output):
-#     style_dict = {0 : 'r', 1 : 'y', 2 : 'b', 3 : '#FF7F50', 4 : 'g', 5 : '#800080'}
-#
-#     s = 0
-#     for string_tran in output:
-#         for note in string_tran:
-#             start_time = note['timestamp']
-#             midi_note = librosa.hz_to_midi(note['values'][0])
-#             dur = note['duration']
-#             plt.plot([start_time, start_time + dur],
-#                      [midi_note, midi_note],
-#                      style_dict[s])
-#         s += 1
-#
-#
-#
-#     plt.show()
-#
-#
-#
+
+def visualize_jams(jam):
+    style_dict = {0 : 'r', 1 : 'y', 2 : 'b', 3 : '#FF7F50', 4 : 'g', 5 : '#800080'}
+
+    s = 0
+    for string_tran in jam.search(namespace='pitch_midi'):
+        for note in string_tran:
+            start_time = note[0]
+            midi_note = note[2]
+            dur = note[1]
+            plt.plot([start_time, start_time + dur],
+                     [midi_note, midi_note],
+                     style_dict[s])
+        s += 1
+
+    plt.show()
+
+
+

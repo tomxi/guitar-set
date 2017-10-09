@@ -6,7 +6,7 @@ import os
 def run_one(dirpath):
     man_jam = ann.csvs_to_jams(dirpath)
     man_jam.save(dirpath+'_man.jams')
-    man_midi = ann.jams_to_midi(man_jam)
+    man_midi = ann.jams_to_midi(man_jam, q=0)
     ann.sonify(man_midi, dirpath + '_man.wav')
 
 

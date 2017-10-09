@@ -1,23 +1,17 @@
 import os
 import annotator as ann
 
-base_dir = '/Users/tom/Music/DataSet/test_set_debleed'
+base_dir = '/Users/tom/Music/DataSet/test_set_cleaned2'
 
-todo_dir_list = ann.get_immediate_subdirectories(base_dir)
+todo_dir_list = [f for f in os.listdir(base_dir) if f.endswith(".wav")]
 
 print(todo_dir_list)
 
-for todo_dir in todo_dir_list:
-    print(todo_dir)
-    current_task = todo_dir
-    dirpath = os.path.join(base_dir, current_task)
-    ann.transcribe(dirpath)
-    # combine jams files to make midi
-    jam = ann.jamses_to_jams(dirpath)
-    jam.save(dirpath+'.jams')
-    # man_jam = ann.csvs_to_jams(dirpath)
-    # man_jam.save(dirpath+'_man.jams')
-    midi_file = ann.jams_to_midi(jam)
-    ann.sonify(midi_file, dirpath + '_trans.wav')
-    # man_midi = ann.jams_to_midi(man_jam)
-    # ann.sonify(man_midi, dirpath + '_manual.wav')
+for todo_hex in todo_dir_list:
+    print(todo_hex)
+    hex_path = os.path.join(base_dir, todo_hex)
+    jam = ann.transcribe_hex(hex_path)
+    jam_path = os.path.join(base_dir, todo_hex.split('.')[0]+'.jams')
+    print('saving to {}'.format(jam_path))
+    jam.save(jam_path)
+

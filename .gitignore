@@ -2,6 +2,9 @@
 *.pyc
 .idea
 .ipynb_checkpoints
-*.ipynb
 *.wav
-
+*.mp3
+mira.log
+mirapie/mira.log
+preset.yml
+tests/resources/
