@@ -2,16 +2,19 @@ import annotator as ann
 import argparse
 import os
 
+import guitar_set.interpreter
+import guitar_set.scripts
+
 
 def run_one(dirpath):
     man_jam = ann.csvs_to_jams(dirpath)
     man_jam.save(dirpath+'_man.jams')
-    man_midi = ann.jams_to_midi(man_jam, q=0)
-    ann.sonify(man_midi, dirpath + '_man.wav')
+    man_midi = guitar_set.interpreter.jams_to_midi(man_jam, q=0)
+    guitar_set.interpreter.sonify(man_midi, dirpath + '_man.wav')
 
 
 def run_many(dirpath):
-    dir_list = ann.get_immediate_subdirectories(dirpath)
+    dir_list = guitar_set.scripts.get_immediate_subdirectories(dirpath)
     for dpath in dir_list:
         run_one(os.path.join(dirpath, dpath))
 

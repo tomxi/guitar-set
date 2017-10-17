@@ -25,28 +25,28 @@ def process_session(input_dir, output_dir, pl_id):
     ]
 
     output_mapping = {
-        'mic_comp': {1: [1]},
-        'mic_solo': {1: [2]},
-        'hex_comp': {k: [v] for (k, v) in zip(range(1,7), range(3,9))},
-        'hex_solo': {k: [v] for (k, v) in zip(range(1,7), range(9,15))},
-        'mix_comp': {1: [15, 16]},
-        'mix_solo': {1: [17, 18]}
+        'comp_mic': {1: [1]},
+        'solo_mic': {1: [2]},
+        'comp_hex': {k: [v] for (k, v) in zip(range(1,7), range(3,9))},
+        'solo_hex': {k: [v] for (k, v) in zip(range(1,7), range(9,15))},
+        'comp_mix': {1: [15, 16]},
+        'solo_mix': {1: [17, 18]}
     }
 
-    output_mapping_with_label = {
-        'c0': {1: [3]},
-        'c1': {1: [4]},
-        'c2': {1: [5]},
-        'c3': {1: [6]},
-        'c4': {1: [7]},
-        'c5': {1: [8]},
-        's0': {1: [9]},
-        's1': {1: [10]},
-        's2': {1: [11]},
-        's3': {1: [12]},
-        's4': {1: [13]},
-        's5': {1: [14]}
-    }
+    # output_mapping_with_label = {
+    #     'c0': {1: [3]},
+    #     'c1': {1: [4]},
+    #     'c2': {1: [5]},
+    #     'c3': {1: [6]},
+    #     'c4': {1: [7]},
+    #     'c5': {1: [8]},
+    #     's0': {1: [9]},
+    #     's1': {1: [10]},
+    #     's2': {1: [11]},
+    #     's3': {1: [12]},
+    #     's4': {1: [13]},
+    #     's5': {1: [14]}
+    # }
 
     stem_paths = [os.path.join(input_dir, f) for f in stem_names]
 
@@ -64,23 +64,24 @@ def process_session(input_dir, output_dir, pl_id):
         for mix_type, remix_dict in output_mapping.items():
             cbn = sox.Combiner()
             cbn.trim(st, et)
+            cbn.gain(normalize=True)
             cbn.remix(remix_dictionary=remix_dict)
             output_path = os.path.join(
                 output_dir, '{}_{}_{}.wav'.format(pl_id, label, mix_type))
             cbn.build(stem_paths, output_path, combine_type='merge')
 
-        # with extra folder
-        for mix_type, remix_dict in output_mapping_with_label.items():
-            cbn = sox.Combiner()
-            cbn.trim(st, et)
-            cbn.remix(remix_dictionary=remix_dict)
-            dir_name = '{}_{}_{}'.format(pl_id, label, mix_type[0])
-            final_output_dir = os.path.join(output_dir, dir_name)
-            if not os.path.exists(final_output_dir):
-                os.makedirs(final_output_dir)
-            output_path = os.path.join(
-                final_output_dir, '{}.wav'.format(mix_type[1]))
-            cbn.build(stem_paths, output_path, combine_type='merge')
+        # # with extra folder
+        # for mix_type, remix_dict in output_mapping_with_label.items():
+        #     cbn = sox.Combiner()
+        #     cbn.trim(st, et)
+        #     cbn.remix(remix_dictionary=remix_dict)
+        #     dir_name = '{}_{}_{}'.format(pl_id, label, mix_type[0])
+        #     final_output_dir = os.path.join(output_dir, dir_name)
+        #     if not os.path.exists(final_output_dir):
+        #         os.makedirs(final_output_dir)
+        #     output_path = os.path.join(
+        #         final_output_dir, '{}.wav'.format(mix_type[1]))
+        #     cbn.build(stem_paths, output_path, combine_type='merge')
 
 
 def load_times():
@@ -88,7 +89,7 @@ def load_times():
     et_list = []
     label_list = []
 
-    with open('resources/cutting_times.csv', 'rb') as timing_csv:
+    with open('../resources/cutting_times.csv', 'rb') as timing_csv:
         reader = csv.reader(timing_csv, delimiter=',')
         for row in reader:
             st_list.append(float(row[0]))
@@ -104,8 +105,12 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Logic Session Parser')
-    parser.add_argument('input_dir', type=str, help='path to input folder')
-    parser.add_argument('output_dir', type=str, help='path to output folder')
+    parser.add_argument(
+        'input_dir', type=str,
+        help='path to Logic Bounce Folder as input path'
+    )
+    parser.add_argument('output_dir', type=str, help='path to output '
+                                                     'directory')
     parser.add_argument('pl_id', type=str, help='string to identify the '
                                                 'player')
     main(parser.parse_args())

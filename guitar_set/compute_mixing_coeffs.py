@@ -4,7 +4,6 @@ from scipy.optimize import minimize
 import librosa
 
 
-
 def get_feature_audio(filename):
     sr = 8192
     y, fs = librosa.load(filename, mono=True, sr=sr)

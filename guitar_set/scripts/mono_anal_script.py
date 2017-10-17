@@ -5,32 +5,70 @@ import argparse
 import librosa
 import vamp
 import jams
-# import numpy as np
+import numpy as np
+import sox
 
 
-def output_to_jams(notes, dur, open_string_midi):
+def get_features(y, fs, note, args):
+    open_string = args.open_string_midi
+    midi_note = librosa.hz_to_midi(note['values'][0])[0]
+    fret_pos = round(midi_note - open_string)
+
+    start_time = float(note['timestamp'])
+
+    dur = float(note['duration'])
+    end_time = start_time + dur
+
+    note_y = y[int(round(start_time * fs)) : int(round(end_time * fs))]
+    feature_list = [open_string, fret_pos, dur, np.max(note_y ** 2),
+                    np.mean(note_y ** 2)]
+    spread = librosa.feature.spectral_bandwidth(
+            y=note_y, sr=fs, S=None, n_fft=2048, hop_length=512,
+            freq=None, centroid=None, norm=True, p=2)
+    avg_spread = np.mean(spread)
+    max_spread = np.max(spread)
+    feature_list.append(avg_spread)
+    feature_list.append(max_spread)
+    return feature_list
+
+
+def output_to_jams(y, fs, notes, args):
     jam = jams.JAMS()
-    jam.file_metadata.duration = dur
+    jam.file_metadata.duration = sox.file_info.duration(args.stem_path)
+    jam.file_metadata.title = args.stem_path
     ann = jams.Annotation(
         namespace='pitch_midi', time=0,
         duration=jam.file_metadata.duration
     )
-    ann.annotation_metadata.data_source = str(open_string_midi)
+    ann.annotation_metadata.data_source = str(args.open_string_midi)
+    notes_features = []
     for note in notes:
         start_time = float(note['timestamp'])
         midi_note = librosa.hz_to_midi(note['values'][0])[0]
         dur = float(note['duration'])
-        if midi_note >= open_string_midi-0.5:
-            ann.append(time=start_time,
-                       value=midi_note,
-                       duration=dur,
-                       confidence=None)
-        else:
-            print(
-                'pyin: {} lower than open string {}, discarding'.format(
-                    midi_note, open_string_midi)
-            )
+
+        notes_features.append(get_features(y, fs, note, args))
+        ann.append(time=start_time,
+                   value=midi_note,
+                   duration=dur,
+                   confidence=None)
+
+        # if midi_note >= args.open_string_midi-0.5:
+        #     notes_features.append(get_features(y, fs, note, args))
+        #     ann.append(time=start_time,
+        #                value=midi_note,
+        #                duration=dur,
+        #                confidence=None)
+        # else:
+        #     print(
+        #         'pyin: {} lower than open string {}, discarding'.format(
+        #             midi_note, args.open_string_midi)
+        #     )
+    notes_features = np.array(notes_features)
+    ann.sandbox.features = notes_features
+
     jam.annotations.append(ann)
+
     return jam
 
 
@@ -71,22 +109,22 @@ def mono_anal(y, fs, param=None):
             'threshdistr': 2,
             'outputunvoiced': 0,
             'precisetime': 0,
-            'lowampsuppression': 0.01,
-            'onsetsensitivity': 0.5
+            'lowampsuppression': 0.005,
+            'onsetsensitivity': 0.7
         }
 
     output_notes = vamp.collect(y, fs, 'pyin:pyin', output='notes',
                                 parameters=param)
 
-    return output_notes['list'], len(y) / float(fs)
+    return output_notes['list']
 
 
 def main(args):
     """build a jams file next to the input file or to a specific directory"""
     print('loading {}'.format(args.stem_path))
     y, fs = librosa.load(args.stem_path, sr=44100)
-    notes, dur = mono_anal(y, fs)
-    jam = output_to_jams(notes, dur, args.open_string_midi)
+    notes = mono_anal(y, fs)
+    jam = output_to_jams(y, fs, notes, args)
     jam_path = args.stem_path.split('.')[0]+'.jams'
     jam.save(jam_path)
     print('jams file generated')
