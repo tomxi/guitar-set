@@ -1,9 +1,9 @@
 import os
 import annotator as ann
 
-base_dir = '/Users/tom/Music/DataSet/test_set'
+base_dir = '/Users/tom/Music/DataSet/guitar_set/eh'
 
-todo_dir_list = [f for f in os.listdir(base_dir) if f.endswith(".wav")]
+todo_dir_list = [f for f in os.listdir(base_dir) if f.endswith("hexc.wav")]
 
 print(todo_dir_list)
 

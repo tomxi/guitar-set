@@ -9,8 +9,7 @@ import guitar_set.scripts
 def run_one(dirpath):
     man_jam = ann.csvs_to_jams(dirpath)
     man_jam.save(dirpath+'_man.jams')
-    man_midi = guitar_set.interpreter.jams_to_midi(man_jam, q=0)
-    guitar_set.interpreter.sonify(man_midi, dirpath + '_man.wav')
+    guitar_set.interpreter.sonify_jams(man_jam, dirpath + '_man.wav', q=0)
 
 
 def run_many(dirpath):

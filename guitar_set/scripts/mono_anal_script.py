@@ -47,23 +47,23 @@ def output_to_jams(y, fs, notes, args):
         midi_note = librosa.hz_to_midi(note['values'][0])[0]
         dur = float(note['duration'])
 
-        notes_features.append(get_features(y, fs, note, args))
-        ann.append(time=start_time,
-                   value=midi_note,
-                   duration=dur,
-                   confidence=None)
+        # notes_features.append(get_features(y, fs, note, args))
+        # ann.append(time=start_time,
+        #            value=midi_note,
+        #            duration=dur,
+        #            confidence=None)
 
-        # if midi_note >= args.open_string_midi-0.5:
-        #     notes_features.append(get_features(y, fs, note, args))
-        #     ann.append(time=start_time,
-        #                value=midi_note,
-        #                duration=dur,
-        #                confidence=None)
-        # else:
-        #     print(
-        #         'pyin: {} lower than open string {}, discarding'.format(
-        #             midi_note, args.open_string_midi)
-        #     )
+        if midi_note >= args.open_string_midi-0.5:
+            notes_features.append(get_features(y, fs, note, args))
+            ann.append(time=start_time,
+                       value=midi_note,
+                       duration=dur,
+                       confidence=None)
+        else:
+            print(
+                'pyin: {} lower than open string {}, discarding'.format(
+                    midi_note, args.open_string_midi)
+            )
     notes_features = np.array(notes_features)
     ann.sandbox.features = notes_features
 
