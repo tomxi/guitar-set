@@ -1,0 +1,10 @@
+*.DS_Store
+*.pyc
+.idea
+.ipynb_checkpoints
+*.wav
+*.mp3
+mira.log
+mirapie/mira.log
+preset.yml
+tests/resources/
