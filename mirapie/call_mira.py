@@ -1,11 +1,12 @@
-import os
-import yaml
 import argparse
+import os
+
+import yaml
 
 
 def run(input_path, csv_path):
     preset_yml = 1
-    with open("mirapie/preset_single.yml", 'rb') as stream:
+    with open("mirapie/preset_batch.yml", 'rb') as stream:
         try:
             preset_yml = yaml.load(stream)
             preset_yml[1]['output_folder_path'] = input_path

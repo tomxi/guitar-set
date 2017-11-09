@@ -2,11 +2,12 @@
 """
 
 import argparse
-import librosa
-import vamp
+
 import jams
+import librosa
 import numpy as np
 import sox
+import vamp
 
 
 def get_features(y, fs, note, args):
@@ -29,13 +30,12 @@ def get_features(y, fs, note, args):
     max_spread = np.max(spread)
     feature_list.append(avg_spread)
     feature_list.append(max_spread)
-    return feature_list
+    return np.array(feature_list)
 
 
 def output_to_jams(y, fs, notes, args):
     jam = jams.JAMS()
     jam.file_metadata.duration = sox.file_info.duration(args.stem_path)
-    jam.file_metadata.title = args.stem_path
     ann = jams.Annotation(
         namespace='pitch_midi', time=0,
         duration=jam.file_metadata.duration
@@ -72,7 +72,7 @@ def output_to_jams(y, fs, notes, args):
     return jam
 
 
-def mono_anal(y, fs, param=None):
+def mono_anal(y, fs, open_str_num, param=None):
     """Run pyin on an audio signal y.
 
     Parameters
@@ -109,8 +109,11 @@ def mono_anal(y, fs, param=None):
             'threshdistr': 2,
             'outputunvoiced': 0,
             'precisetime': 0,
-            'lowampsuppression': 0.005,
-            'onsetsensitivity': 0.7
+            'lowampsuppression': 0.2,
+            'onsetsensitivity': 0.3,
+            'prunethresh': 0.1
+            # 'minfreq': librosa.core.midi_to_hz(open_str_num)[0]
+            # 'maxfreq': librosa.core.midi_to_hz(open_str_num+24)[0]
         }
 
     output_notes = vamp.collect(y, fs, 'pyin:pyin', output='notes',
@@ -123,7 +126,8 @@ def main(args):
     """build a jams file next to the input file or to a specific directory"""
     print('loading {}'.format(args.stem_path))
     y, fs = librosa.load(args.stem_path, sr=44100)
-    notes = mono_anal(y, fs)
+    osn = args.open_string_midi
+    notes = mono_anal(y, fs, osn)
     jam = output_to_jams(y, fs, notes, args)
     jam_path = args.stem_path.split('.')[0]+'.jams'
     jam.save(jam_path)

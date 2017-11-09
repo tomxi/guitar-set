@@ -1,23 +1,27 @@
-import os
-import glob
-import tempfile
-import shutil
-import sox
-import mirapie.call_mira as mira
 import argparse
+import glob
+import os
+import shutil
+import tempfile
+
+import sox
+
+import mirapie.call_mira as mira
+from guitar_set import util
 
 
-# input_path = '/Users/tom/Music/DataSet/test_set/'
-csv_path = 'guitar_set/resources/ghex_mira.csv'
-# out_path = '/Users/tom/Music/DataSet/test_set_cleaned2/'
+# input_path = '/Users/tom/Music/DataSet/test-set/'
+# out_path = '/Users/tom/Music/DataSet/test-set_cleaned/'
 
 
-def run_one(input_path, csv_path, output_dir=None):
+def run_one(input_path, output_dir=None):
+    csv_path = 'guitar_set/resources/ghex_mira.csv'
 
     if output_dir is None:
         output_dir = input_path
 
     temp_path = tempfile.mkdtemp() + '/'
+    # print(temp_path)
 
     output_mapping = {'0': {1: [1]},
                       '1': {1: [2]},
@@ -27,7 +31,7 @@ def run_one(input_path, csv_path, output_dir=None):
                       '5': {1: [6]}
                       }
 
-    for mix_type, remix_dict in output_mapping.items():
+    for mix_type, remix_dict in sorted(output_mapping.items()):
         tfm = sox.Transformer()
         tfm.remix(remix_dictionary=remix_dict)
         output_path = os.path.join(temp_path, '{}.wav'.format(mix_type))
@@ -35,19 +39,21 @@ def run_one(input_path, csv_path, output_dir=None):
 
     mira.run(temp_path, csv_path)
 
-    file_name = os.path.basename(input_path).split('.')[0] + 'c.wav'
+    file_name = os.path.basename(input_path).split('.')[0] + '_cln.wav'
 
     cleaned_output_mapping = {
         file_name: {k: [v] for (k, v) in zip(range(1, 7), range(1, 7))}
     }
 
-    cleaned_stems = [os.path.join(temp_path, f) for f in os.listdir(temp_path)
-                     if os.path.isfile(os.path.join(temp_path, f))]
+    cleaned_stems = [os.path.join(temp_path + 'Q/', f) for f in os.listdir(
+        temp_path + 'Q/') if util.ext_f_condition(f, temp_path + 'Q/', 'wav')]
+    cleaned_stems.sort()
 
-    for file_name, remix_dict in cleaned_output_mapping.items():
+    for f_name, remix_dict in sorted(cleaned_output_mapping.items()):
         cbn = sox.Combiner()
         cbn.remix(remix_dictionary=remix_dict)
-        out_path = os.path.join(output_dir,file_name)
+        cbn.gain(normalize=True)
+        out_path = os.path.join(output_dir, f_name)
         cbn.build(cleaned_stems, out_path, combine_type='merge')
 
     shutil.rmtree(temp_path)
@@ -58,10 +64,15 @@ def main(args):
     base_dir = args.input_dir
     format_str = '/*hex.wav'
     input_paths = glob.glob(base_dir + format_str)
-    print(len(input_paths))
+    todo_num = len(input_paths)
     for input_path in input_paths:
         print(input_path)
-        run_one(input_path, csv_path, args.output_dir)
+        print(todo_num)
+        if os.path.exists(input_path.split('.')[0] + '_cln.wav'):
+            pass  # output already exists!
+        else:
+            run_one(input_path, args.output_dir)
+        todo_num -= 1
 
 
 if __name__ == '__main__':
