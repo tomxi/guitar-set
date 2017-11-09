@@ -34,10 +34,10 @@ def transcribe(dirpath):
     """run
     mono_pyin on all wavs in a folder `dirpath`.
     """
-    # first try loading from dirpath
+    # first load from dirpath
     files = [join(dirpath, f) for f in listdir(dirpath) if
              ext_f_condition(f, dirpath, 'wav')]
-
+    files.sort()
     # make dummy output
     output = []
 
@@ -75,7 +75,9 @@ def transcribe_hex(hex_path):
     transcribe(temp_path)
 
     jam = jamses_to_jams(temp_path)
+    jam.file_metadata.title = os.path.basename(hex_path)
     shutil.rmtree(temp_path)
+    print(jam.file_metadata.title)
     return jam
 
 
@@ -108,12 +110,12 @@ def jamses_to_midi(jams_files_dir, q=1):
 def jamses_to_jams(jams_files_dir):
     jams_files = [join(jams_files_dir, f) for f in listdir(jams_files_dir) if
                   ext_f_condition(f, jams_files_dir, 'jams')]
+    jams_files.sort()
     jam = jams.JAMS()
     for j in jams_files:
         mono_jams = jams.load(j)
         jam.annotations.append(mono_jams.search(namespace='pitch_midi')[0])
         jam.file_metadata.duration = mono_jams.file_metadata.duration
-        jam.file_metadata.title = j
     return jam
 
 
