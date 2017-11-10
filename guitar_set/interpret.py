@@ -5,8 +5,8 @@ import jams
 from guitar_set import interpreter as itp
 from guitar_set import util
 
-base_dir = '/Users/tom/Music/DataSet/test-set_gated/'
-out_dir = '/Users/tom/Music/DataSet/test-set_gated_itp/'
+base_dir = '/Users/tom/Music/DataSet/test-set_cleaned/'
+out_dir = '/Users/tom/Music/DataSet/test-set_cleaned_itp/'
 jams_list = util.get_all_ext(base_dir, ext='.jams')
 
 for jam_path in jams_list:

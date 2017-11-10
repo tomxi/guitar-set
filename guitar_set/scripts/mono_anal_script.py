@@ -2,12 +2,12 @@
 """
 
 import argparse
-
 import jams
 import librosa
 import numpy as np
 import sox
 import vamp
+import json
 
 
 def get_features(y, fs, note, args):
@@ -72,7 +72,7 @@ def output_to_jams(y, fs, notes, args):
     return jam
 
 
-def mono_anal(y, fs, open_str_num, param=None):
+def mono_anal(y, fs, open_str_num, param_path='resources/pYin_param.json'):
     """Run pyin on an audio signal y.
 
     Parameters
@@ -104,17 +104,11 @@ def mono_anal(y, fs, open_str_num, param=None):
 
 
     """
-    if param is None:
-        param = {
-            'threshdistr': 2,
-            'outputunvoiced': 0,
-            'precisetime': 0,
-            'lowampsuppression': 0.2,
-            'onsetsensitivity': 0.3,
-            'prunethresh': 0.1
-            # 'minfreq': librosa.core.midi_to_hz(open_str_num)[0]
-            # 'maxfreq': librosa.core.midi_to_hz(open_str_num+24)[0]
-        }
+
+    with open(param_path) as p:
+        param_u = json.load(p)
+
+    param = {str(k): v for k,v in param_u.items()}
 
     output_notes = vamp.collect(y, fs, 'pyin:pyin', output='notes',
                                 parameters=param)
