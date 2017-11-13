@@ -5,14 +5,14 @@ import random
 import string
 
 base_dir = '/Users/tom/Music/DataSet/test-set_cleaned/'
-
+out_dir = '/Users/tom/Music/DataSet/test-set_cleaned_output/'
 
 def random_param():
     param = {"threshdistr": 2,
              "lowampsuppression": random.uniform(0,0.2),
              "outputunvoiced": 0,
              "precisetime": 0,
-             "prunethresh": random.uniform(0,1),
+             "prunethresh": random.uniform(0,0.2),
              "onsetsensitivity": random.uniform(0,1)}
 
     return param
@@ -26,7 +26,7 @@ while True:
             [random.choice(string.ascii_uppercase + string.digits) for _ in
             range(N)]
         )
-        out_base_dir = os.path.join(base_dir, random_dir)
+        out_base_dir = os.path.join(out_dir, random_dir)
         try:
             os.mkdir(out_base_dir)
             again = False
