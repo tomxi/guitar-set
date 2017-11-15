@@ -1,1 +1,3 @@
-{"threshdistr": 2, "lowampsuppression": 0.03973085000685148, "outputunvoiced": 0, "precisetime": 0, "prunethresh": 0.4206648531931466, "onsetsensitivity": 0.08413265830659311}
+{"threshdistr": 2, "lowampsuppression": 0.08,
+  "outputunvoiced": 0, "precisetime": 0, "prunethresh": 0.05,
+  "onsetsensitivity": 0.8}

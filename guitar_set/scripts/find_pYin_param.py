@@ -1,24 +1,25 @@
 import os
 import json
-import annotator as ann
+import guitar_set.annotator as ann
 import random
 import string
 
 base_dir = '/Users/tom/Music/DataSet/test-set_cleaned/'
-out_dir = '/Users/tom/Music/DataSet/test-set_cleaned_output/'
+out_dir = '/Users/tom/Music/DataSet/test-set_cleaned_output2/'
 
 def random_param():
     param = {"threshdistr": 2,
-             "lowampsuppression": random.uniform(0,0.2),
+             "lowampsuppression": random.uniform(0.075, 0.1),
              "outputunvoiced": 0,
              "precisetime": 0,
-             "prunethresh": random.uniform(0,0.2),
-             "onsetsensitivity": random.uniform(0,1)}
+             "prunethresh": random.uniform(0.01, 0.1),
+             "onsetsensitivity": random.uniform(0.75, 0.85)}
 
     return param
 
 
 while True:
+    # generate random folder of N char in len
     N = 4
     again = True
     while again:
@@ -42,6 +43,7 @@ while True:
 
     print(param, todo_dir_list)
 
+    # do all in todo_dir_list
     todo_num = len(todo_dir_list)
     for todo_hex in todo_dir_list:
         print(todo_hex, random_dir, todo_num)
@@ -52,6 +54,7 @@ while True:
         jam.save(out_path)
         todo_num -= 1
 
+    # save param as param.json
     with open(os.path.join(out_base_dir,'param.json'), 'w') as stream:
         json.dump(param, stream)
 
