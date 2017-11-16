@@ -68,9 +68,9 @@ def get_dir_list(dir_path):
     return dir_list
 
 
-base_dir = '/Users/tom/Music/DataSet/test-set_mira_search1/'
-todo_list = get_dir_list(base_dir)
-print(todo_list)
-for d in todo_list:
-    do(d)
-# do('/Users/tom/Music/DataSet/test-set_cleaned/')
+if __name__ == 'main':
+    base_dir = '/Users/tom/Music/DataSet/test-set_mira_search1/'
+    todo_list = get_dir_list(base_dir)
+    print(todo_list)
+    for d in todo_list:
+        do(d)

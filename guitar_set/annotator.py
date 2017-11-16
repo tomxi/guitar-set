@@ -18,7 +18,7 @@ from guitar_set.util import ext_f_condition
 
 def mono_anal(stem_path, open_string_midi):
     done = False
-    cmd = 'python scripts/mono_anal_script.py {} {}'.format(
+    cmd = 'python guitar_set/scripts/mono_anal_script.py {} {}'.format(
         stem_path,
                                                     open_string_midi)
     while not done:

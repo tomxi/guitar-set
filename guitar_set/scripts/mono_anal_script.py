@@ -72,7 +72,8 @@ def output_to_jams(y, fs, notes, args):
     return jam
 
 
-def mono_anal(y, fs, open_str_num, param_path='resources/pYin_param.json'):
+def mono_anal(y, fs, open_str_num,
+              param_path='guitar_set/resources/pYin_param.json'):
     """Run pyin on an audio signal y.
 
     Parameters
