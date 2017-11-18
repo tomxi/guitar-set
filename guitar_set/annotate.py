@@ -22,6 +22,9 @@ def do(base_dir):
     for todo_hex in todo_dir_list:
         print([todo_hex, todo_num])
         out_path = os.path.join(base_dir, todo_hex.split('.')[0] + '.jams')
+        if os.path.isfile(out_path):
+            todo_num -= 1
+            continue
         hex_path = os.path.join(base_dir, todo_hex)
         jam = ann.transcribe_hex(hex_path)
         print('saving jams to {}'.format(out_path))
@@ -68,9 +71,6 @@ def get_dir_list(dir_path):
     return dir_list
 
 
-if __name__ == 'main':
-    base_dir = '/Users/tom/Music/DataSet/test-set_mira_search1/'
-    todo_list = get_dir_list(base_dir)
-    print(todo_list)
-    for d in todo_list:
-        do(d)
+if __name__ == '__main__':
+    base_dir = '/Users/tom/Music/DataSet/guitar-set_cln/'
+    do(base_dir)
