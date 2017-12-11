@@ -6,6 +6,8 @@
 1: {alpha: 2.0, audio_duration_sec: 100, audio_init_pos_sec: 0, audio_max_len_sec: 100,
   beta: 0.0, do_approx: false, do_kernel: false, do_smooth_init: true, do_sparsity_constraint: false,
   inner_iter: 3, is_PSD_learning: true, is_lambda_freq_dependant: false, is_lambda_learning: true,
-  lambda_iter: 3, minimal_interference: 0.25262258840080537, n_iter: 4, nfft: 8192,
-  output_folder_path: /Users/tom/Music/DataSet/guitar_set/eh_post_mira/, overlap: 0.9053677105983088,
+  lambda_iter: 3, minimal_interference: 0.1, n_iter: 4,
+  nfft: 8192,
+  output_folder_path: /Users/tom/Music/DataSet/guitar_set/,
+  overlap: 0.9,
   preset_name: Q, prj_dim: 512, rho: 10000, smooth_n_iter: 3}

@@ -37,7 +37,7 @@ def output_to_jams(y, fs, notes, args):
     jam = jams.JAMS()
     jam.file_metadata.duration = sox.file_info.duration(args.stem_path)
     ann = jams.Annotation(
-        namespace='pitch_midi', time=0,
+        namespace='note_midi', time=0,
         duration=jam.file_metadata.duration
     )
     ann.annotation_metadata.data_source = str(args.open_string_midi)

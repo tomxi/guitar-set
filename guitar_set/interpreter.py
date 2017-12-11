@@ -10,7 +10,7 @@ from guitar_set import util as util
 def jams_to_midi(jam, q=1):
     # q = 1: with pitch bend. q = 0: without pitch bend.
     midi = pretty_midi.PrettyMIDI()
-    annos = jam.search(namespace='pitch_midi')
+    annos = jam.search(namespace='note_midi')
     for anno in annos:
         midi_ch = pretty_midi.Instrument(program=25)
         for note in anno:
@@ -44,7 +44,7 @@ def visualize_jams(jam, save_path=None):
     s = 0
     handle_list = []
     plt.figure()
-    for string_tran in jam.search(namespace='pitch_midi'):
+    for string_tran in jam.search(namespace='note_midi'):
         handle_list.append(mlines.Line2D([], [], color=style_dict[s],
                                          label=string_dict[s]))
         for note in string_tran:
@@ -71,7 +71,7 @@ def tablaturize_jams(jam, save_path=None):
     style_dict = {0 : 'r', 1 : 'y', 2 : 'b', 3 : '#FF7F50', 4 : 'g', 5 : '#800080'}
     s = 0
     plt.figure()
-    for string_tran in jam.search(namespace='pitch_midi'):
+    for string_tran in jam.search(namespace='note_midi'):
         for note in string_tran:
             start_time = note[0]
             midi_note = note[2]

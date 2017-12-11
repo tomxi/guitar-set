@@ -72,5 +72,5 @@ def get_dir_list(dir_path):
 
 
 if __name__ == '__main__':
-    base_dir = '/Users/tom/Music/DataSet/guitar-set_cln/'
+    base_dir = '/Users/tom/Music/DataSet/test-set_processed/'
     do(base_dir)
