@@ -34,8 +34,8 @@ def do(base_dir):
 
 def dir_to_score(ref_dir, est_dir):
     # ref_dir and est_dir need to contain all 8 jams files of the test-set
-    jams_list = [f for f in os.listdir(est_dir) if f.split('.')[1] == 'jams']
-    ref_list = [f for f in os.listdir(ref_dir) if f.split('.')[1] == 'jams']
+    jams_list = [f for f in os.listdir(est_dir) if len(f.split('.')) > 1 and f.split('.')[1] == 'jams']
+    ref_list = [f for f in os.listdir(ref_dir) if len(f.split('.')) > 1 and f.split('.')[1] == 'jams']
     jams_list.sort()
     ref_list.sort()
 
@@ -49,8 +49,16 @@ def dir_to_score(ref_dir, est_dir):
         ref_jams = jams.load(os.path.join(ref_dir, r))
         # print(e,r)
         for i in range(6):
-            est_ann = est_jams.search(namespace='pitch_midi')[i]
-            ref_ann = ref_jams.search(namespace='pitch_midi')[i]
+            try:
+                est_ann = est_jams.search(namespace='note_midi')[i]
+            except IndexError:
+                est_ann = est_jams.search(namespace='pitch_midi')[i]
+                
+            try:
+                ref_ann = ref_jams.search(namespace='note_midi')[i]
+            except IndexError:
+                ref_ann = ref_jams.search(namespace='pitch_midi')[i]
+            
             t_offset = i * est_ann.duration + big_est.duration
             big_est.duration += est_ann.duration
             big_ref.duration += ref_ann.duration

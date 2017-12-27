@@ -11,6 +11,8 @@ def jams_to_midi(jam, q=1):
     # q = 1: with pitch bend. q = 0: without pitch bend.
     midi = pretty_midi.PrettyMIDI()
     annos = jam.search(namespace='note_midi')
+    if len(annos) == 0:
+        annos = jam.search(namespace='pitch_midi')
     for anno in annos:
         midi_ch = pretty_midi.Instrument(program=25)
         for note in anno:
@@ -31,11 +33,12 @@ def jams_to_midi(jam, q=1):
     return midi
 
 
-def sonify_jams(jam, fpath='resources/sonify_out/test.wav', q=1):
+def sonify_jams(jam, fpath=None, q=1):
     midi = jams_to_midi(jam, q) # q=1 : with pitchbend
     signal_out = midi.fluidsynth()
-    util.save_small_wav(fpath, signal_out, 44100)
-    return fpath
+    if fpath != None:
+        util.save_small_wav(fpath, signal_out, 44100)
+    return signal_out
 
 
 def visualize_jams(jam, save_path=None):
@@ -44,7 +47,10 @@ def visualize_jams(jam, save_path=None):
     s = 0
     handle_list = []
     plt.figure()
-    for string_tran in jam.search(namespace='note_midi'):
+    annos = jam.search(namespace='note_midi')
+    if len(annos) == 0:
+        annos = jam.search(namespace='pitch_midi')
+    for string_tran in annos:
         handle_list.append(mlines.Line2D([], [], color=style_dict[s],
                                          label=string_dict[s]))
         for note in string_tran:
