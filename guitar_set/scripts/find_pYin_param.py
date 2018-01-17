@@ -1,6 +1,6 @@
 import os
 import json
-import guitar_set.annotator as ann
+import guitar_set.pyin_annotator as ann
 import random
 import string
 

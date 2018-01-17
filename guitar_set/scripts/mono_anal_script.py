@@ -37,24 +37,18 @@ def output_to_jams(y, fs, notes, args):
     jam = jams.JAMS()
     jam.file_metadata.duration = sox.file_info.duration(args.stem_path)
     ann = jams.Annotation(
-        namespace='note_midi', time=0,
+        namespace='pitch_midi', time=0,
         duration=jam.file_metadata.duration
     )
     ann.annotation_metadata.data_source = str(args.open_string_midi)
-    notes_features = []
+    # notes_features = []
     for note in notes:
         start_time = float(note['timestamp'])
         midi_note = librosa.hz_to_midi(note['values'][0])[0]
         dur = float(note['duration'])
 
-        # notes_features.append(get_features(y, fs, note, args))
-        # ann.append(time=start_time,
-        #            value=midi_note,
-        #            duration=dur,
-        #            confidence=None)
-
         if midi_note >= args.open_string_midi-0.5:
-            notes_features.append(get_features(y, fs, note, args))
+            # notes_features.append(get_features(y, fs, note, args))
             ann.append(time=start_time,
                        value=midi_note,
                        duration=dur,
@@ -64,9 +58,8 @@ def output_to_jams(y, fs, notes, args):
                 'pyin: {} lower than open string {}, discarding'.format(
                     midi_note, args.open_string_midi)
             )
-    notes_features = np.array(notes_features)
-    ann.sandbox.features = notes_features
-
+    # notes_features = np.array(notes_features)
+    # ann.sandbox.features = notes_features
     jam.annotations.append(ann)
 
     return jam
@@ -106,10 +99,17 @@ def mono_anal(y, fs, open_str_num,
 
     """
 
-    with open(param_path) as p:
-        param_u = json.load(p)
+    # with open(param_path) as p:
+    #     param_u = json.load(p)
+    #
+    # param = {str(k): v for k,v in param_u.items()}
 
-    param = {str(k): v for k,v in param_u.items()}
+    param = {"threshdistr": 2,
+             "lowampsuppression": 0.08,
+             "outputunvoiced": 0,
+             "precisetime": 0,
+             "prunethresh": 0.05,
+             "onsetsensitivity": 0.8}
 
     output_notes = vamp.collect(y, fs, 'pyin:pyin', output='notes',
                                 parameters=param)

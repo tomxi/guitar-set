@@ -1,14 +1,14 @@
 import os
 import jams
-import guitar_set.annotator as ann
+import guitar_set.pyin_annotator as pyin
 
-pYin_param = {"threshdistr": 2,
-         "lowampsuppression": 0.08,
-         "outputunvoiced": 0,
-         "precisetime": 0,
-         "prunethresh": 0.05,
-         "onsetsensitivity": 0.8}
-
+# pYin_param = {"threshdistr": 2,
+#          "lowampsuppression": 0.08,
+#          "outputunvoiced": 0,
+#          "precisetime": 0,
+#          "prunethresh": 0.05,
+#          "onsetsensitivity": 0.8}
+#
 # with open('../resources/pYin_param.json', 'rw') as p:
 #     json.dump(pYin_param, p)
 
@@ -26,7 +26,7 @@ def do(base_dir):
             todo_num -= 1
             continue
         hex_path = os.path.join(base_dir, todo_hex)
-        jam = ann.transcribe_hex(hex_path)
+        jam = pyin.transcribe_hex(hex_path)
         print('saving jams to {}'.format(out_path))
         jam.save(out_path)
         todo_num -= 1

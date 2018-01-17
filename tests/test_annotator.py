@@ -5,7 +5,7 @@ import librosa
 import matplotlib.pyplot as plt
 import numpy as np
 
-from guitar_set import annotator as ghex
+from guitar_set import pyin_annotator as ghex
 
 
 # Constant function for this file.

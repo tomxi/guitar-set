@@ -1,4 +1,4 @@
-import annotator as ann
+import pyin_annotator as ann
 import argparse
 import os
 
