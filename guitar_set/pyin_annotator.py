@@ -194,4 +194,24 @@ def pad_sparse_anno(anno):
     return anno
 
 
+def ref_jam_update(ref_jam):
+    new_ref = jams.JAMS()
+    new_ref.file_metadata = ref_jam.file_metadata
+    for a in ref_jam.annotations:
+        new_a = jams.convert(a, 'pitch_contour')
+        new_a = pad_sparse_anno(new_a)
+
+        times = np.arange(0, a.duration, step=0.02)
+        value_list = new_a.to_samples(times=times)
+
+        dense_ref = jams.Annotation(namespace='pitch_contour',
+                                    duration=a.duration)
+        # dense_ref.annotation_metadata = a.annotation_metadata
+        for (t, v) in zip(times, value_list):
+            dense_ref.append(time=t, duration=0.0, value=v[0])
+
+        new_ref.annotations.append(dense_ref)
+    return new_ref
+
+
 
